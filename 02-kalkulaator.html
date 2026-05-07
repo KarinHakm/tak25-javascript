@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ülesanne 2 – Kalkulaator</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .calc-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .calc-buttons .btn {
+            margin: 0;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .result-large {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-top: 20px;
+            padding: 18px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .inputs-row {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .operator-display {
+            font-size: 2em;
+            font-weight: 700;
+            color: #2563eb;
+            text-align: center;
+            padding-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <nav class="nav">
+        <a href="index.html">← Tagasi</a>
+        <span>Ülesanne 2 / 13</span>
+        <a href="03-parool.html">Järgmine →</a>
+    </nav>
+
+    <span class="badge">Ülesanne 2</span>
+    <h1>Lihtne kalkulaator</h1>
+    <p class="subtitle">
+        Õpid lugema arvulisi sisendeid, kasutama aritmeetilisi operaatoreid ja kontrollima
+        vigaseid sisendeid (jagamine nulliga).
+    </p>
+
+    <div class="card">
+        <div class="inputs-row">
+            <div class="form-group" style="margin:0">
+                <label for="arv1">Esimene arv</label>
+                <input type="number" id="arv1" placeholder="nt. 12" step="any">
+            </div>
+            <div class="operator-display" id="tehtemärk">?</div>
+            <div class="form-group" style="margin:0">
+                <label for="arv2">Teine arv</label>
+                <input type="number" id="arv2" placeholder="nt. 4" step="any">
+            </div>
+        </div>
+
+        <div class="calc-buttons" style="margin-top:20px">
+            <button class="btn btn-primary"  onclick="arvuta('+')">+ Liida</button>
+            <button class="btn btn-secondary" onclick="arvuta('-')">− Lahuta</button>
+            <button class="btn btn-success"  onclick="arvuta('*')">× Korruta</button>
+            <button class="btn btn-warning"  onclick="arvuta('/')">÷ Jaga</button>
+        </div>
+
+        <div id="tulemus" class="result-large" style="display:none;"></div>
+
+        <button class="btn btn-outline" onclick="nulli()" style="margin-top:12px">Nulli</button>
+    </div>
+
+    <div class="card">
+        <h2>Arvutuse ajalugu</h2>
+        <p id="ajaluguTühi" style="color:#94a3b8; font-size:0.9em;">Tee mõni arvutus…</p>
+        <ul id="ajalugu" style="list-style:none; padding:0;"></ul>
+    </div>
+
+</div>
+
+<script>
+    // ── Ülesanne 2: Number(), operaatorid, tingimuslaused, veakontroll ──
+
+    // Ajalugu hoiame massiivis (kasutame seda esimest korda siin, edasi ka teistes ülesannetes)
+    const ajalugu = [];
+
+    function arvuta(tehtemärk) {
+        // Number() teisendab stringi arvuks
+        const arv1 = Number(document.querySelector('#arv1').value);
+        const arv2 = Number(document.querySelector('#arv2').value);
+        const kastike = document.querySelector('#tulemus');
+
+        // Kontrollime, kas mõlemad väljad on täidetud
+        if (document.querySelector('#arv1').value === '' ||
+            document.querySelector('#arv2').value === '') {
+            kastike.textContent = '⚠ Palun sisesta mõlemad arvud!';
+            kastike.className = 'result-large result-box result-error';
+            kastike.style.display = 'block';
+            return; // Katkestame funktsiooni
+        }
+
+        let tulemus;
+        let tehtemärkNimi;
+
+        // Valime tehte
+        if (tehtemärk === '+') {
+            tulemus = arv1 + arv2;
+            tehtemärkNimi = '+';
+        } else if (tehtemärk === '-') {
+            tulemus = arv1 - arv2;
+            tehtemärkNimi = '−';
+        } else if (tehtemärk === '*') {
+            tulemus = arv1 * arv2;
+            tehtemärkNimi = '×';
+        } else if (tehtemärk === '/') {
+            // Veakontroll: nulliga jagamine on keelatud
+            if (arv2 === 0) {
+                kastike.textContent = '⛔ Nulliga ei saa jagada!';
+                kastike.className = 'result-large result-box result-error';
+                kastike.style.display = 'block';
+                document.querySelector('#tehtemärk').textContent = '÷';
+                return;
+            }
+            tulemus = arv1 / arv2;
+            tehtemärkNimi = '÷';
+        }
+
+        // Ümardame 10 kohani, et vältida ujukomavigu (nt 0.1 + 0.2)
+        const ümardatud = Math.round(tulemus * 1e10) / 1e10;
+
+        kastike.textContent = arv1 + ' ' + tehtemärkNimi + ' ' + arv2 + ' = ' + ümardatud;
+        kastike.className = 'result-large result-box result-success';
+        kastike.style.display = 'block';
+
+        document.querySelector('#tehtemärk').textContent = tehtemärkNimi;
+
+        // Salvestame ajalukku
+        lisaAjalukku(arv1 + ' ' + tehtemärkNimi + ' ' + arv2 + ' = ' + ümardatud);
+    }
+
+    function lisaAjalukku(tekst) {
+        ajalugu.unshift(tekst); // unshift lisab massiivi algusse
+        if (ajalugu.length > 8) {
+            ajalugu.pop(); // pop eemaldab viimase elemendi
+        }
+        kuvaajalugu();
+    }
+
+    function kuvaajalugu() {
+        const nimekiri = document.querySelector('#ajalugu');
+        const tühi = document.querySelector('#ajaluguTühi');
+        nimekiri.innerHTML = '';
+
+        if (ajalugu.length === 0) {
+            tühi.style.display = 'block';
+            return;
+        }
+
+        tühi.style.display = 'none';
+        ajalugu.forEach(function (kirje, indeks) {
+            const li = document.createElement('li');
+            li.style.cssText = 'padding:7px 0; border-bottom:1px solid #e2e8f0; color:' +
+                (indeks === 0 ? '#1e40af' : '#64748b') + '; font-size:0.95em;';
+            li.textContent = kirje;
+            nimekiri.appendChild(li);
+        });
+    }
+
+    function nulli() {
+        document.querySelector('#arv1').value = '';
+        document.querySelector('#arv2').value = '';
+        document.querySelector('#tulemus').style.display = 'none';
+        document.querySelector('#tehtemärk').textContent = '?';
+    }
+</script>
+</body>
+</html>

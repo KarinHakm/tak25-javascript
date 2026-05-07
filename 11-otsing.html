@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ülesanne 11 – Otsing ja filtreerimine</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .juhtriba {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 580px) {
+            .juhtriba { grid-template-columns: 1fr; }
+        }
+
+        .toote-kaardid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .toote-kaart {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .toote-kaart:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+            border-color: #bfdbfe;
+        }
+
+        .toote-nimetus {
+            font-weight: 700;
+            font-size: 1em;
+            margin-bottom: 8px;
+            color: #1e293b;
+        }
+
+        .toote-hind {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2563eb;
+            margin-bottom: 8px;
+        }
+
+        .toote-hinne {
+            color: #d97706;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .tulemuste-riba {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 0.9em;
+            color: #64748b;
+            flex-wrap: wrap;
+        }
+
+        .otsi-sõna {
+            background: #fef9c3;
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-weight: 600;
+            color: #92400e;
+        }
+
+        .pole-tulemusi {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+        }
+
+        .pole-tulemusi .suur-ikoon { font-size: 3em; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <nav class="nav">
+        <a href="index.html">← Tagasi</a>
+        <span>Ülesanne 11 / 13</span>
+        <a href="12-jquery.html">Järgmine →</a>
+    </nav>
+
+    <span class="badge">Ülesanne 11</span>
+    <h1>Otsing ja filtreerimine</h1>
+    <p class="subtitle">
+        Toodete nimekiri. Otsi nime järgi, filtreeri kategooria järgi,
+        sordi hinna või hindamise järgi. Kasutab <code>filter()</code> ja <code>sort()</code>.
+    </p>
+
+    <!-- Juhtriba -->
+    <div class="card" style="padding:20px">
+        <div class="juhtriba">
+            <div class="form-group" style="margin:0">
+                <label for="otsing">Otsi toote nime järgi:</label>
+                <input type="text" id="otsing" placeholder="nt. sülearvuti…" oninput="uuenda()">
+            </div>
+            <div class="form-group" style="margin:0">
+                <label for="kategooria">Kategooria:</label>
+                <select id="kategooria" onchange="uuenda()" style="width:auto; min-width:160px">
+                    <option value="">Kõik</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin:0">
+                <label for="sortimine">Sordi:</label>
+                <select id="sortimine" onchange="uuenda()" style="width:auto; min-width:180px">
+                    <option value="nimea">Nimi (A→Z)</option>
+                    <option value="nimed">Nimi (Z→A)</option>
+                    <option value="hinda">Hind (odavam ees)</option>
+                    <option value="hindd">Hind (kallim ees)</option>
+                    <option value="hinne">Hinne (parem ees)</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="lähtesta()">✕ Tühista filtrid</button>
+    </div>
+
+    <!-- Tulemuste riba -->
+    <div class="tulemuste-riba" id="tulemusteriba"></div>
+
+    <!-- Toote kaardid -->
+    <div class="toote-kaardid" id="tooteKaardid"></div>
+
+</div>
+
+<script>
+    // ── Ülesanne 11: filter(), sort(), reaalajas otsing ──
+    // Andmestik laetakse siin otse. Ülesandes 10 saab selle fetch()-iga.
+
+    const tooted = [
+        { id: 1,  nimi: "Sülearvuti",              hind: 899,  kategooria: "Elektroonika", hinne: 4.8, kirjeldus: "Kiire ja kerge töölaptop" },
+        { id: 2,  nimi: "Nutitelefon",             hind: 649,  kategooria: "Elektroonika", hinne: 4.5, kirjeldus: "Hea kaameraga Android" },
+        { id: 3,  nimi: "Juhtmevabad kõrvaklapid", hind: 149,  kategooria: "Elektroonika", hinne: 4.2, kirjeldus: "Mürasummutusega" },
+        { id: 4,  nimi: "JavaScript algajatele",   hind: 24,   kategooria: "Haridus",      hinne: 4.7, kirjeldus: "Eestikeelne õpik" },
+        { id: 5,  nimi: "Clean Code",              hind: 35,   kategooria: "Haridus",      hinne: 4.9, kirjeldus: "Klassika igale arendajale" },
+        { id: 6,  nimi: "Kohvikruus",              hind: 12,   kategooria: "Köök",         hinne: 4.0, kirjeldus: "Programmeerimisteemalised" },
+        { id: 7,  nimi: "Seljakott",               hind: 65,   kategooria: "Riided",       hinne: 3.8, kirjeldus: "Sülearvuti tasku 15\"" },
+        { id: 8,  nimi: "Köögipõll",               hind: 22,   kategooria: "Köök",         hinne: 4.3, kirjeldus: "Meeldiv kink kolleegile" },
+        { id: 9,  nimi: "Märkmik A5",              hind: 8,    kategooria: "Haridus",      hinne: 3.9, kirjeldus: "Jooneline, 200 lehekülge" },
+        { id: 10, nimi: "Tahvelarvuti",            hind: 399,  kategooria: "Elektroonika", hinne: 4.1, kirjeldus: "10\" ekraaniga Android" },
+        { id: 11, nimi: "Klaviatuur",              hind: 89,   kategooria: "Elektroonika", hinne: 4.6, kirjeldus: "Mehaaniline, tagasiütlemiseta" },
+        { id: 12, nimi: "Lauaraamat CSS",          hind: 42,   kategooria: "Haridus",      hinne: 4.4, kirjeldus: "Lea Verou CSS Secrets" }
+    ];
+
+    // Täidame kategooria rippmenüü automaatselt andmestiku põhjal
+    function ehitaKategooriad() {
+        // Set() kogub ainulaadsed väärtused
+        const kategooriad = [...new Set(tooted.map(t => t.kategooria))].sort();
+        const valik = document.querySelector('#kategooria');
+        kategooriad.forEach(function (kat) {
+            const opt = document.createElement('option');
+            opt.value = kat;
+            opt.textContent = kat;
+            valik.appendChild(opt);
+        });
+    }
+
+    function uuenda() {
+        const otsingTekst  = document.querySelector('#otsing').value.toLowerCase().trim();
+        const katFilter    = document.querySelector('#kategooria').value;
+        const sortValik    = document.querySelector('#sortimine').value;
+
+        // 1. Filtreerimine
+        let tulemused = tooted.filter(function (toode) {
+            const nimiKattub = toode.nimi.toLowerCase().includes(otsingTekst);
+            const katKattub  = katFilter === '' || toode.kategooria === katFilter;
+            return nimiKattub && katKattub;
+        });
+
+        // 2. Sortimine
+        tulemused.sort(function (a, b) {
+            if (sortValik === 'nimea') return a.nimi.localeCompare(b.nimi, 'et');
+            if (sortValik === 'nimed') return b.nimi.localeCompare(a.nimi, 'et');
+            if (sortValik === 'hinda') return a.hind - b.hind;
+            if (sortValik === 'hindd') return b.hind - a.hind;
+            if (sortValik === 'hinne') return b.hinne - a.hinne;
+            return 0;
+        });
+
+        // 3. Kuvame
+        kuvaKaardid(tulemused, otsingTekst);
+        kuvaStatistika(tulemused, otsingTekst);
+    }
+
+    function kuvaKaardid(andmed, otsingSõna) {
+        const konteiner = document.querySelector('#tooteKaardid');
+        konteiner.innerHTML = '';
+
+        if (andmed.length === 0) {
+            konteiner.innerHTML =
+                '<div class="pole-tulemusi">' +
+                '<div class="suur-ikoon">🔍</div>' +
+                '<strong>Ühtegi tulemust ei leitud</strong><br>' +
+                '<span style="font-size:0.9em">Proovi teist otsingusõna või eemalda filter</span>' +
+                '</div>';
+            return;
+        }
+
+        andmed.forEach(function (toode) {
+            // Tõstame otsingusõna esile
+            let nimiHtml = toode.nimi;
+            if (otsingSõna) {
+                const regex = new RegExp('(' + otsingSõna.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                nimiHtml = toode.nimi.replace(regex, '<mark style="background:#fef08a; border-radius:2px">$1</mark>');
+            }
+
+            const tärnid = '★'.repeat(Math.round(toode.hinne)) + '☆'.repeat(5 - Math.round(toode.hinne));
+
+            const kaart = document.createElement('div');
+            kaart.className = 'toote-kaart';
+            kaart.innerHTML =
+                '<span class="tag tag-gray" style="margin-bottom:10px; display:inline-block">' + toode.kategooria + '</span>' +
+                '<div class="toote-nimetus">' + nimiHtml + '</div>' +
+                '<div class="toote-hind">' + toode.hind + ' €</div>' +
+                '<div class="toote-hinne">' + tärnid + ' <span style="color:#94a3b8">' + toode.hinne + '/5</span></div>' +
+                '<div style="font-size:0.82em; color:#94a3b8">' + toode.kirjeldus + '</div>';
+
+            konteiner.appendChild(kaart);
+        });
+    }
+
+    function kuvaStatistika(tulemused, otsingSõna) {
+        const riba = document.querySelector('#tulemusteriba');
+        let tekst = '<strong>' + tulemused.length + '</strong> toodet ' +
+                    '(kokku ' + tooted.length + ')';
+
+        if (otsingSõna) {
+            tekst += ' · otsingusõna: <span class="otsi-sõna">' + otsingSõna + '</span>';
+        }
+
+        const katFilter = document.querySelector('#kategooria').value;
+        if (katFilter) {
+            tekst += ' · kategooria: <span class="tag tag-blue">' + katFilter + '</span>';
+        }
+
+        if (tulemused.length > 0) {
+            const odavaim = tulemused.reduce((min, t) => t.hind < min.hind ? t : min);
+            const kalleim = tulemused.reduce((max, t) => t.hind > max.hind ? t : max);
+            tekst += ' · hind: ' + odavaim.hind + '–' + kalleim.hind + ' €';
+        }
+
+        riba.innerHTML = tekst;
+    }
+
+    function lähtesta() {
+        document.querySelector('#otsing').value = '';
+        document.querySelector('#kategooria').value = '';
+        document.querySelector('#sortimine').value = 'nimea';
+        uuenda();
+    }
+
+    ehitaKategooriad();
+    uuenda();
+</script>
+</body>
+</html>

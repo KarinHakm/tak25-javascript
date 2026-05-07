@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ülesanne 1 – Tervitaja</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+
+    <nav class="nav">
+        <a href="index.html">← Tagasi</a>
+        <span>Ülesanne 1 / 13</span>
+        <a href="02-kalkulaator.html">Järgmine →</a>
+    </nav>
+
+    <span class="badge">Ülesanne 1</span>
+    <h1>„Tere, JavaScript!"</h1>
+    <p class="subtitle">
+        Õpid, kuidas HTML, CSS ja JavaScript koos töötavad.
+        Kasutad muutujaid, sündmusi ja muudad lehe sisu JavaScriptiga.
+    </p>
+
+    <div class="card">
+        <div class="form-group">
+            <label for="nimiSisend">Sisesta oma nimi:</label>
+            <input type="text" id="nimiSisend" placeholder="nt. Mari" maxlength="50">
+        </div>
+
+        <button class="btn btn-primary" onclick="tervita()">Tervita</button>
+        <button class="btn btn-secondary" onclick="tühjenda()">Tühjenda</button>
+
+        <div id="tulemus" class="result-box result-success" style="display: none;"></div>
+    </div>
+
+    <div class="card">
+        <h2>Mängi sündmustega</h2>
+        <p style="color:#64748b; margin-bottom:16px; font-size:0.95em;">
+            Sama tulemus, aga siin toimub tervitamine kohe, kui trükid &ndash; ilma nuputa.
+        </p>
+        <div class="form-group">
+            <label for="nimiReaalaeg">Nimi (reaalaeg):</label>
+            <input type="text" id="nimiReaalaeg" placeholder="Alusta trükkimist…" maxlength="50">
+        </div>
+        <div id="tulemusReaalaeg" class="result-box result-info" style="display: none;"></div>
+    </div>
+
+</div>
+
+<script>
+    // ── Ülesanne 1: muutujad, sündmused, querySelector ──
+
+    // Funktsioon käivitatakse nupu klõpsamisel (onclick="tervita()")
+    function tervita() {
+        // Loeme tekstivälja väärtuse
+        const nimiSisend = document.querySelector('#nimiSisend');
+        const nimi = nimiSisend.value.trim(); // trim() eemaldab tühikud algusest ja lõpust
+
+        const tulemuse­kast = document.querySelector('#tulemus');
+
+        if (nimi === '') {
+            // Kasutaja ei sisestanud nime
+            tulemuse­kast.textContent = '⚠ Palun sisesta oma nimi!';
+            tulemuse­kast.className = 'result-box result-error';
+        } else {
+            // Kuvatakse tervitustekst
+            tulemuse­kast.textContent = 'Tere, ' + nimi + '! 👋';
+            tulemuse­kast.className = 'result-box result-success';
+        }
+
+        tulemuse­kast.style.display = 'block';
+    }
+
+    function tühjenda() {
+        document.querySelector('#nimiSisend').value = '';
+        const kastike = document.querySelector('#tulemus');
+        kastike.style.display = 'none';
+        kastike.textContent = '';
+    }
+
+    // ── Reaalajas sündmus: oninput käivitub iga klahvivajutuse järel ──
+    document.querySelector('#nimiReaalaeg').addEventListener('input', function () {
+        const nimi = this.value.trim(); // "this" viitab sellele sisendväljale
+        const kastike = document.querySelector('#tulemusReaalaeg');
+
+        if (nimi === '') {
+            kastike.style.display = 'none';
+        } else {
+            kastike.textContent = 'Tere, ' + nimi + '! 👋';
+            kastike.style.display = 'block';
+        }
+    });
+
+    // Enter-klahv käivitab tervitamise
+    document.querySelector('#nimiSisend').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            tervita();
+        }
+    });
+</script>
+</body>
+</html>

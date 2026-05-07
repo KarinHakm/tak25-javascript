@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ülesanne 5 – Pildigalerii</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .suur-pilt-wrap {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #1e293b;
+            margin-bottom: 14px;
+        }
+
+        #suurPilt {
+            width: 100%;
+            height: 380px;
+            object-fit: cover;
+            display: block;
+            transition: opacity 0.3s ease;
+        }
+
+        .pilt-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            color: white;
+            padding: 24px 18px 16px;
+        }
+
+        .pilt-info h3 { color: white; font-size: 1.1em; }
+        .pilt-info p  { font-size: 0.85em; opacity: 0.85; }
+
+        .eelvaated {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .eelvaade-nupp {
+            padding: 0;
+            border: 3px solid transparent;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: none;
+        }
+
+        .eelvaade-nupp img {
+            width: 110px;
+            height: 72px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .eelvaade-nupp:hover {
+            border-color: #2563eb;
+            transform: scale(1.05);
+        }
+
+        .eelvaade-nupp.aktiivne {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+        }
+
+        .nav-nupud {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .pilt-loendur {
+            color: #64748b;
+            font-size: 0.9em;
+            flex: 1;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <nav class="nav">
+        <a href="index.html">← Tagasi</a>
+        <span>Ülesanne 5 / 13</span>
+        <a href="06-kujundus.html">Järgmine →</a>
+    </nav>
+
+    <span class="badge">Ülesanne 5</span>
+    <h1>Pildigalerii</h1>
+    <p class="subtitle">
+        Klikk väikesel pildil vahetab suure pildi. Noolnupud liiguvad galeriis edasi-tagasi.
+        Pildi <code>src</code> atribuuti muudetakse JavaScriptiga.
+    </p>
+
+    <div class="card">
+        <!-- Suur pilt -->
+        <div class="suur-pilt-wrap">
+            <img id="suurPilt" src="" alt="Galerii pilt">
+            <div class="pilt-info">
+                <h3 id="piltPealkiri"></h3>
+                <p id="piltKirjeldus"></p>
+            </div>
+        </div>
+
+        <!-- Navigatsiooninupud -->
+        <div class="nav-nupud" style="margin-bottom:14px">
+            <button class="btn btn-secondary" onclick="eelminePilt()">← Eelmine</button>
+            <span class="pilt-loendur" id="loendur"></span>
+            <button class="btn btn-primary" onclick="järgminePilt()">Järgmine →</button>
+        </div>
+
+        <!-- Eelvaated -->
+        <div class="eelvaated" id="eelvaated"></div>
+    </div>
+
+</div>
+
+<script>
+    // ── Ülesanne 5: img src muutmine, massiivid objektidega, sündmused ──
+    // Massiiv objektidega – sama struktuur nagu ülesandes 8 (JSON-andmed)
+
+    const pildid = [
+        {
+            src: 'https://picsum.photos/seed/forest/800/380',
+            eelvaade: 'https://picsum.photos/seed/forest/110/72',
+            pealkiri: 'Mets',
+            kirjeldus: 'Rahulik metsatee varakevadel'
+        },
+        {
+            src: 'https://picsum.photos/seed/mountain/800/380',
+            eelvaade: 'https://picsum.photos/seed/mountain/110/72',
+            pealkiri: 'Mäed',
+            kirjeldus: 'Lumised mäetipud hommikupilves'
+        },
+        {
+            src: 'https://picsum.photos/seed/ocean/800/380',
+            eelvaade: 'https://picsum.photos/seed/ocean/110/72',
+            pealkiri: 'Meri',
+            kirjeldus: 'Laineid lööv rannikuala'
+        },
+        {
+            src: 'https://picsum.photos/seed/city42/800/380',
+            eelvaade: 'https://picsum.photos/seed/city42/110/72',
+            pealkiri: 'Linn',
+            kirjeldus: 'Kaasaegne linnapilt õhtuvalguses'
+        },
+        {
+            src: 'https://picsum.photos/seed/flower/800/380',
+            eelvaade: 'https://picsum.photos/seed/flower/110/72',
+            pealkiri: 'Lilled',
+            kirjeldus: 'Värvilised lilled suvepäeval'
+        }
+    ];
+
+    let aktiivneIndeks = 0;
+
+    // Ehitame eelvaatepildid dünaamiliselt (DOM-elementide loomine)
+    function ehistaEelvaated() {
+        const kontainer = document.querySelector('#eelvaated');
+        kontainer.innerHTML = ''; // Tühjendame
+
+        pildid.forEach(function (pilt, indeks) {
+            const nupp = document.createElement('button');
+            nupp.className = 'eelvaade-nupp';
+
+            const img = document.createElement('img');
+            img.src = pilt.eelvaade;
+            img.alt = pilt.pealkiri;
+            img.title = pilt.pealkiri;
+
+            nupp.appendChild(img);
+
+            // Klikk vahetab pildi – kasutame closuret indeksi salvestamiseks
+            nupp.addEventListener('click', function () {
+                valiPilt(indeks);
+            });
+
+            kontainer.appendChild(nupp);
+        });
+    }
+
+    function valiPilt(indeks) {
+        aktiivneIndeks = indeks;
+        const pilt = pildid[indeks];
+
+        const suurPilt = document.querySelector('#suurPilt');
+
+        // Lühike fade-efekt src vahetamisel
+        suurPilt.style.opacity = '0';
+        setTimeout(function () {
+            suurPilt.src = pilt.src;
+            suurPilt.alt = pilt.pealkiri;
+            suurPilt.style.opacity = '1';
+        }, 200);
+
+        document.querySelector('#piltPealkiri').textContent = pilt.pealkiri;
+        document.querySelector('#piltKirjeldus').textContent = pilt.kirjeldus;
+
+        // Uuendame loenduri teksti
+        document.querySelector('#loendur').textContent =
+            (indeks + 1) + ' / ' + pildid.length;
+
+        // Uuendame aktiivsust eelvaadetel
+        document.querySelectorAll('.eelvaade-nupp').forEach(function (nupp, i) {
+            nupp.classList.toggle('aktiivne', i === indeks);
+        });
+    }
+
+    function järgminePilt() {
+        // Jõudes lõppu, läheme tagasi algusesse (% on mooduloperaator)
+        const järgmine = (aktiivneIndeks + 1) % pildid.length;
+        valiPilt(järgmine);
+    }
+
+    function eelminePilt() {
+        // pildid.length lisamine tagab, et tulemus ei ole negatiivne
+        const eelmine = (aktiivneIndeks - 1 + pildid.length) % pildid.length;
+        valiPilt(eelmine);
+    }
+
+    // Klaviatuuri noolte tugi
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight') järgminePilt();
+        if (e.key === 'ArrowLeft')  eelminePilt();
+    });
+
+    // Käivitame lehe laadimise hetkel
+    ehistaEelvaated();
+    valiPilt(0);
+</script>
+</body>
+</html>

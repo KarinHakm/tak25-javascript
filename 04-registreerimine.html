@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ülesanne 4 – Registreerimisvorm</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .field-error {
+            color: #dc2626;
+            font-size: 0.83em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .field-error.visible {
+            display: block;
+        }
+
+        input.invalid {
+            border-color: #dc2626 !important;
+        }
+
+        input.valid {
+            border-color: #16a34a !important;
+        }
+
+        .success-screen {
+            text-align: center;
+            padding: 32px 20px;
+        }
+
+        .success-icon {
+            font-size: 4em;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <nav class="nav">
+        <a href="index.html">← Tagasi</a>
+        <span>Ülesanne 4 / 13</span>
+        <a href="05-galerii.html">Järgmine →</a>
+    </nav>
+
+    <span class="badge">Ülesanne 4</span>
+    <h1>Registreerimisvorm</h1>
+    <p class="subtitle">
+        Realistlik vormivalideerimise ülesanne. Kõik väljad kontrollitakse enne
+        saatmist ja vead kuvatakse otse vastava välja juures.
+    </p>
+
+    <!-- Vorm -->
+    <div class="card" id="vormCard">
+        <form id="regVorm" onsubmit="saadaVorm(event)" novalidate>
+
+            <div class="form-group">
+                <label for="nimi">Täisnimi *</label>
+                <input type="text" id="nimi" placeholder="nt. Mari Mägi" autocomplete="name">
+                <span class="field-error" id="nimiViga">Palun sisesta oma nimi (vähemalt 2 märki).</span>
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-posti aadress *</label>
+                <input type="email" id="email" placeholder="nt. mari@näide.ee" autocomplete="email">
+                <span class="field-error" id="emailViga">Palun sisesta kehtiv e-posti aadress (peab sisaldama @).</span>
+            </div>
+
+            <div class="form-group">
+                <label for="vanus">Vanus *</label>
+                <input type="number" id="vanus" placeholder="nt. 20" min="1" max="120">
+                <span class="field-error" id="vanusViga">Vanus peab olema vähemalt 13 aastat.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="parool">Parool *</label>
+                <input type="password" id="parool" placeholder="Vähemalt 8 märki" autocomplete="new-password">
+                <span class="field-error" id="paroolViga">Parool peab olema vähemalt 8 märki pikk.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="paroolKordus">Korda parooli *</label>
+                <input type="password" id="paroolKordus" placeholder="Sisesta parool uuesti" autocomplete="new-password">
+                <span class="field-error" id="kordusViga">Paroolid ei kattu. Palun proovi uuesti.</span>
+            </div>
+
+            <div style="margin-top:8px">
+                <button type="submit" class="btn btn-primary btn-lg">Registreeru</button>
+                <button type="button" class="btn btn-secondary" onclick="lähtesta()">Lähtesta</button>
+            </div>
+
+            <p style="margin-top:14px; font-size:0.82em; color:#94a3b8">* Tähistab kohustuslikku välja</p>
+
+        </form>
+    </div>
+
+    <!-- Eduka registreerumise ekraan (peidetud alguses) -->
+    <div class="card" id="eduCard" style="display:none">
+        <div class="success-screen">
+            <div class="success-icon">🎉</div>
+            <h2 style="margin-bottom:10px">Registreerimine õnnestus!</h2>
+            <p style="color:#64748b; margin-bottom:20px">
+                Tere tulemast, <strong id="tervitusNimi"></strong>!<br>
+                Kinnituskiri saadeti aadressile <strong id="tervitusEmail"></strong>.
+            </p>
+            <button class="btn btn-outline" onclick="tagasiVormi()">← Tagasi vormi</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ── Ülesanne 4: vormide valideerimine, tingimuslaused, veateated ──
+    // Kasutame ülesandest 3 tuttavat RegExp-i e-posti kontrollimiseks.
+
+    function saadaVorm(sündmus) {
+        sündmus.preventDefault(); // Takistame lehe ümberlaadimist
+
+        let kehtiv = true; // Eeldame, et vorm on korrektne
+
+        // 1. Nimi
+        const nimiVäärtus = document.querySelector('#nimi').value.trim();
+        if (nimiVäärtus.length < 2) {
+            näitaViga('nimi', 'nimiViga');
+            kehtiv = false;
+        } else {
+            peida­Viga('nimi', 'nimiViga');
+        }
+
+        // 2. E-post – peab sisaldama @ ja domeeni
+        const emailVäärtus = document.querySelector('#email').value.trim();
+        const emailKorrektne = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVäärtus);
+        if (!emailKorrektne) {
+            näitaViga('email', 'emailViga');
+            kehtiv = false;
+        } else {
+            peida­Viga('email', 'emailViga');
+        }
+
+        // 3. Vanus – peab olema number ja vähemalt 13
+        const vanusVäärtus = Number(document.querySelector('#vanus').value);
+        if (isNaN(vanusVäärtus) || vanusVäärtus < 13 || vanusVäärtus > 120) {
+            näitaViga('vanus', 'vanusViga');
+            kehtiv = false;
+        } else {
+            peida­Viga('vanus', 'vanusViga');
+        }
+
+        // 4. Parool – vähemalt 8 märki
+        const paroolVäärtus = document.querySelector('#parool').value;
+        if (paroolVäärtus.length < 8) {
+            näitaViga('parool', 'paroolViga');
+            kehtiv = false;
+        } else {
+            peida­Viga('parool', 'paroolViga');
+        }
+
+        // 5. Parooli kordus
+        const kordusVäärtus = document.querySelector('#paroolKordus').value;
+        if (kordusVäärtus !== paroolVäärtus) {
+            näitaViga('paroolKordus', 'kordusViga');
+            kehtiv = false;
+        } else {
+            peida­Viga('paroolKordus', 'kordusViga');
+        }
+
+        // Kui kõik on korrektne, näita eduekraani
+        if (kehtiv) {
+            document.querySelector('#tervitusNimi').textContent = nimiVäärtus;
+            document.querySelector('#tervitusEmail').textContent = emailVäärtus;
+            document.querySelector('#vormCard').style.display = 'none';
+            document.querySelector('#eduCard').style.display = 'block';
+        }
+    }
+
+    function näitaViga(väljId, vigaId) {
+        document.querySelector('#' + väljId).classList.add('invalid');
+        document.querySelector('#' + väljId).classList.remove('valid');
+        document.querySelector('#' + vigaId).classList.add('visible');
+    }
+
+    function peidaViga(väljId, vigaId) {
+        document.querySelector('#' + väljId).classList.remove('invalid');
+        document.querySelector('#' + väljId).classList.add('valid');
+        document.querySelector('#' + vigaId).classList.remove('visible');
+    }
+
+    // Reaalajas kontroll iga välja puhul
+    ['nimi', 'email', 'vanus', 'parool', 'paroolKordus'].forEach(function (id) {
+        document.querySelector('#' + id).addEventListener('blur', function () {
+            // blur käivitub, kui kasutaja lahkub väljalt
+            saadaVormMockValidate(id);
+        });
+    });
+
+    function saadaVormMockValidate(id) {
+        if (id === 'nimi') {
+            const v = document.querySelector('#nimi').value.trim();
+            v.length >= 2 ? peidaViga('nimi', 'nimiViga') : näitaViga('nimi', 'nimiViga');
+        }
+        if (id === 'email') {
+            const v = document.querySelector('#email').value.trim();
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? peidaViga('email', 'emailViga') : näitaViga('email', 'emailViga');
+        }
+        if (id === 'vanus') {
+            const v = Number(document.querySelector('#vanus').value);
+            (v >= 13 && v <= 120) ? peidaViga('vanus', 'vanusViga') : näitaViga('vanus', 'vanusViga');
+        }
+        if (id === 'parool') {
+            const v = document.querySelector('#parool').value;
+            v.length >= 8 ? peidaViga('parool', 'paroolViga') : näitaViga('parool', 'paroolViga');
+        }
+        if (id === 'paroolKordus') {
+            const k = document.querySelector('#paroolKordus').value;
+            const p = document.querySelector('#parool').value;
+            k === p && k.length > 0 ? peidaViga('paroolKordus', 'kordusViga') : näitaViga('paroolKordus', 'kordusViga');
+        }
+    }
+
+    function lähtesta() {
+        document.querySelector('#regVorm').reset();
+        ['nimi', 'email', 'vanus', 'parool', 'paroolKordus'].forEach(function (id) {
+            document.querySelector('#' + id).classList.remove('invalid', 'valid');
+        });
+        ['nimiViga', 'emailViga', 'vanusViga', 'paroolViga', 'kordusViga'].forEach(function (id) {
+            document.querySelector('#' + id).classList.remove('visible');
+        });
+    }
+
+    function tagasiVormi() {
+        document.querySelector('#eduCard').style.display = 'none';
+        document.querySelector('#vormCard').style.display = 'block';
+        lähtesta();
+    }
+
+    // Alias (veaparandus: kasutasime nii peida­Viga kui peidaViga — ühtlustame)
+    const peida­Viga = peidaViga;
+</script>
+</body>
+</html>

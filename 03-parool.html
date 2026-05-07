@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ülesanne 3 – Parooli tugevus</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .strength-bar-wrap {
+            background: #e2e8f0;
+            border-radius: 6px;
+            height: 10px;
+            margin: 12px 0 6px;
+            overflow: hidden;
+        }
+
+        .strength-bar {
+            height: 100%;
+            border-radius: 6px;
+            width: 0;
+            transition: width 0.4s ease, background 0.4s ease;
+        }
+
+        .strength-label {
+            font-weight: 700;
+            font-size: 0.95em;
+            margin-bottom: 12px;
+        }
+
+        .requirements li {
+            padding: 5px 0;
+            font-size: 0.9em;
+            list-style: none;
+            color: #dc2626;
+            transition: color 0.2s;
+        }
+
+        .requirements li.ok {
+            color: #16a34a;
+        }
+
+        .requirements li::before {
+            content: '✗ ';
+            font-weight: 700;
+        }
+
+        .requirements li.ok::before {
+            content: '✓ ';
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <nav class="nav">
+        <a href="index.html">← Tagasi</a>
+        <span>Ülesanne 3 / 13</span>
+        <a href="04-registreerimine.html">Järgmine →</a>
+    </nav>
+
+    <span class="badge">Ülesanne 3</span>
+    <h1>Parooli tugevuse kontrollija</h1>
+    <p class="subtitle">
+        Kontrollib parooli reaalajas: pikkust, numbreid, suurtähti ja erimärke.
+        Tulemust näidatakse visuaalselt nõrk / keskmine / tugev.
+    </p>
+
+    <div class="card">
+        <div class="form-group">
+            <label for="paroolSisend">Sisesta parool:</label>
+            <input type="password" id="paroolSisend" placeholder="Trüki parool siia…">
+        </div>
+
+        <label>
+            <input type="checkbox" id="näitaParool" onchange="lülitaNähtavus()">
+            Näita parooli
+        </label>
+
+        <div class="strength-bar-wrap" style="margin-top:16px">
+            <div class="strength-bar" id="tugevusRiba"></div>
+        </div>
+        <div class="strength-label" id="tugevusTekst" style="color:#94a3b8">
+            Alusta trükkimist…
+        </div>
+
+        <hr style="border:none; border-top:1px solid #e2e8f0; margin:16px 0">
+
+        <h3>Nõuded:</h3>
+        <ul class="requirements" id="nõuded">
+            <li id="req-pikkus">Vähemalt 8 märki</li>
+            <li id="req-number">Sisaldab numbrit (0–9)</li>
+            <li id="req-suur">Sisaldab suurtähte (A–Z)</li>
+            <li id="req-eri">Sisaldab erimärki (!@#$%^&amp;* jne)</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>Mis on tugev parool?</h2>
+        <p style="color:#64748b; font-size:0.9em; line-height:1.7">
+            Tugev parool on pikk (vähemalt 12 märki), koosneb suur- ja väiketähtedest,
+            numbritest ning erimärkidest. Ära kasuta ühte sõna ega isiklikke andmeid
+            (sünniaeg, nimi). Kasuta erinevates kontodes erinevaid paroole.
+        </p>
+    </div>
+
+</div>
+
+<script>
+    // ── Ülesanne 3: stringid, RegExp, reaalajas valideerimine ──
+
+    // Regulaaravaldised (RegExp) – kontrollimise muster
+    const nõuded = {
+        pikkus:  { test: p => p.length >= 8,           id: 'req-pikkus' },
+        number:  { test: p => /[0-9]/.test(p),         id: 'req-number' },
+        suur:    { test: p => /[A-Z]/.test(p),         id: 'req-suur'   },
+        eri:     { test: p => /[^A-Za-z0-9]/.test(p), id: 'req-eri'    }
+    };
+
+    // Sündmus käivitub iga klahvivajutuse järel
+    document.querySelector('#paroolSisend').addEventListener('input', function () {
+        kontrolliParool(this.value);
+    });
+
+    function kontrolliParool(parool) {
+        let läbitudCount = 0;
+
+        // Kontrollime iga nõuet ja uuendame visuaali
+        Object.values(nõuded).forEach(function (nõue) {
+            const element = document.querySelector('#' + nõue.id);
+            if (nõue.test(parool)) {
+                element.classList.add('ok');
+                läbitudCount++;
+            } else {
+                element.classList.remove('ok');
+            }
+        });
+
+        // Arvutame tugevuse skoorist lähtudes
+        kuvatugevus(parool, läbitudCount);
+    }
+
+    function kuvatugevus(parool, läbitudCount) {
+        const riba   = document.querySelector('#tugevusRiba');
+        const tekst  = document.querySelector('#tugevusTekst');
+
+        if (parool.length === 0) {
+            riba.style.width = '0';
+            tekst.textContent = 'Alusta trükkimist…';
+            tekst.style.color = '#94a3b8';
+            return;
+        }
+
+        // Hindame tugevust läbitud nõuete arvu järgi
+        if (läbitudCount <= 1) {
+            riba.style.width = '25%';
+            riba.style.background = '#dc2626';
+            tekst.textContent = '🔴 Nõrk';
+            tekst.style.color = '#dc2626';
+        } else if (läbitudCount === 2) {
+            riba.style.width = '55%';
+            riba.style.background = '#d97706';
+            tekst.textContent = '🟡 Keskmine';
+            tekst.style.color = '#d97706';
+        } else if (läbitudCount === 3) {
+            riba.style.width = '78%';
+            riba.style.background = '#2563eb';
+            tekst.textContent = '🔵 Hea';
+            tekst.style.color = '#2563eb';
+        } else {
+            riba.style.width = '100%';
+            riba.style.background = '#16a34a';
+            tekst.textContent = '🟢 Tugev';
+            tekst.style.color = '#16a34a';
+        }
+    }
+
+    function lülitaNähtavus() {
+        const sisend = document.querySelector('#paroolSisend');
+        // Vahetame input tüüpi text ↔ password vahel
+        sisend.type = sisend.type === 'password' ? 'text' : 'password';
+    }
+</script>
+</body>
+</html>

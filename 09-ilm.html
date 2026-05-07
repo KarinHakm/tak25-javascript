@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ülesanne 9 – Mini-ilmarakendus</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .ilm-kaart {
+            text-align: center;
+            padding: 32px 24px;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .ilm-kaart h2 { color: white; font-size: 1.8em; margin-bottom: 4px; }
+        .ilm-kaart .riik { opacity: 0.8; font-size: 0.9em; margin-bottom: 20px; }
+
+        .ilm-ikoon { font-size: 4em; margin: 12px 0; }
+
+        .temperatuur {
+            font-size: 3.5em;
+            font-weight: 700;
+            margin: 8px 0;
+        }
+
+        .seisund {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .ilm-detailid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .detail {
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .detail-väärtus { font-size: 1.1em; font-weight: 700; }
+        .detail-silt    { font-size: 0.78em; opacity: 0.8; margin-top: 3px; }
+
+        .linnad-nimekiri {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .linn-nupp {
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .linn-nupp:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .linn-nupp.aktiivne {
+            border-color: #2563eb;
+            background: #dbeafe;
+        }
+
+        .linn-nimi { font-weight: 600; font-size: 0.95em; }
+        .linn-temp { font-size: 0.82em; color: #64748b; }
+
+        /* Temperatuuri gradient taustas */
+        .külm    { background: linear-gradient(135deg, #1e3a5f, #2563eb); }
+        .jahe    { background: linear-gradient(135deg, #0369a1, #0ea5e9); }
+        .soe     { background: linear-gradient(135deg, #15803d, #22c55e); }
+        .palav   { background: linear-gradient(135deg, #d97706, #f59e0b); }
+        .kuum    { background: linear-gradient(135deg, #b91c1c, #ef4444); }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <nav class="nav">
+        <a href="index.html">← Tagasi</a>
+        <span>Ülesanne 9 / 13</span>
+        <a href="10-ajax.html">Järgmine →</a>
+    </nav>
+
+    <span class="badge">Ülesanne 9</span>
+    <h1>Mini-ilmarakendus</h1>
+    <p class="subtitle">
+        Ilmaandmed loetakse JSON-andmestikust (ülesandes 10 laetakse need päriselt failist).
+        Vali linn rippmenüüst või nimekirjast, et näha ilmainfot.
+    </p>
+
+    <!-- Linna valik -->
+    <div class="card">
+        <div class="form-group" style="margin-bottom:0">
+            <label for="linnaValik">Vali linn:</label>
+            <select id="linnaValik" onchange="näitaIlm()">
+                <option value="">– Vali linn –</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Ilmakaart (peidetud alguses) -->
+    <div id="ilmaKaart" class="ilm-kaart" style="display:none">
+        <h2 id="ilmLinn"></h2>
+        <div class="riik" id="ilmMaakond"></div>
+        <div class="ilm-ikoon" id="ilmIkoon"></div>
+        <div class="temperatuur" id="ilmTemp"></div>
+        <div class="seisund" id="ilmSeisund"></div>
+        <div class="ilm-detailid">
+            <div class="detail">
+                <div class="detail-väärtus" id="ilmNiiskus"></div>
+                <div class="detail-silt">Niiskus</div>
+            </div>
+            <div class="detail">
+                <div class="detail-väärtus" id="ilmTuul"></div>
+                <div class="detail-silt">Tuul</div>
+            </div>
+            <div class="detail">
+                <div class="detail-väärtus" id="ilmTunne"></div>
+                <div class="detail-silt">Tuntav temp.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kõik linnad -->
+    <div class="card">
+        <h2>Kõik linnad</h2>
+        <div class="linnad-nimekiri" id="linnadNimekiri"></div>
+    </div>
+
+</div>
+
+<script>
+    // ── Ülesanne 9: JSON-andmed, valikukast, andmete filtreerimine ──
+    // Ülesandes 10 laetakse sarnased andmed fetch()-iga välisest failist.
+
+    const ilmaAndmed = [
+        { linn: "Tallinn",    maakond: "Harjumaa",   temperatuur: 1,  seisund: "Lumesadu",    niiskus: 88, tuul: "NE 12 km/h", tuntavTemp: -4  },
+        { linn: "Tõrva",      maakond: "Valgamaa",   temperatuur: -2, seisund: "Pilves",      niiskus: 82, tuul: "E 8 km/h",   tuntavTemp: -7  },
+        { linn: "Tartu",      maakond: "Tartumaa",   temperatuur: 0,  seisund: "Udune",       niiskus: 91, tuul: "SW 5 km/h",  tuntavTemp: -3  },
+        { linn: "Pärnu",      maakond: "Pärnumaa",   temperatuur: 3,  seisund: "Vahelduv pilv", niiskus: 75, tuul: "W 15 km/h", tuntavTemp: -1 },
+        { linn: "Narva",      maakond: "Ida-Virumaa", temperatuur: -5, seisund: "Tugev pakane", niiskus: 70, tuul: "N 20 km/h", tuntavTemp: -12 },
+        { linn: "Viljandi",   maakond: "Viljandimaa", temperatuur: -1, seisund: "Kerge lumi", niiskus: 85, tuul: "NW 7 km/h",  tuntavTemp: -5  },
+        { linn: "Rakvere",    maakond: "Lääne-Virumaa", temperatuur: 2, seisund: "Selge",   niiskus: 65, tuul: "S 10 km/h",   tuntavTemp: 0   },
+        { linn: "Kuressaare", maakond: "Saaremaa",   temperatuur: 4,  seisund: "Pilvine",     niiskus: 80, tuul: "SW 22 km/h", tuntavTemp: 0  },
+        { linn: "Võru",       maakond: "Võrumaa",    temperatuur: -3, seisund: "Lumesadu",    niiskus: 90, tuul: "E 6 km/h",   tuntavTemp: -8  },
+        { linn: "Haapsalu",   maakond: "Läänemaaa",  temperatuur: 3,  seisund: "Vihmane",     niiskus: 87, tuul: "W 18 km/h",  tuntavTemp: -1  }
+    ];
+
+    // Ilmastiku ikoonide kaardistamine
+    function ilmaIkoon(seisund) {
+        const s = seisund.toLowerCase();
+        if (s.includes('lumi') || s.includes('lume'))  return '❄️';
+        if (s.includes('vihm'))                         return '🌧️';
+        if (s.includes('selge'))                        return '☀️';
+        if (s.includes('pakane'))                       return '🥶';
+        if (s.includes('udu'))                          return '🌫️';
+        if (s.includes('pilv'))                         return '⛅';
+        return '🌤️';
+    }
+
+    // Temperatuuri põhjal taustaklass
+    function temperatuuriKlass(t) {
+        if (t <= -5)  return 'külm';
+        if (t <= 0)   return 'jahe';
+        if (t <= 12)  return 'soe';
+        if (t <= 25)  return 'palav';
+        return 'kuum';
+    }
+
+    function täidaRippmenüü() {
+        const valik = document.querySelector('#linnaValik');
+        ilmaAndmed.forEach(function (andmed) {
+            const option = document.createElement('option');
+            option.value = andmed.linn;
+            option.textContent = andmed.linn + ' (' + andmed.temperatuur + '°C)';
+            valik.appendChild(option);
+        });
+    }
+
+    function ehitaLinnadNimekiri() {
+        const kontainer = document.querySelector('#linnadNimekiri');
+        ilmaAndmed.forEach(function (andmed) {
+            const nupp = document.createElement('button');
+            nupp.className = 'linn-nupp';
+            nupp.dataset.linn = andmed.linn;
+            nupp.innerHTML =
+                '<div class="linn-nimi">' + andmed.linn + '</div>' +
+                '<div class="linn-temp">' + andmed.temperatuur + '°C · ' + andmed.seisund + '</div>';
+            nupp.addEventListener('click', function () {
+                document.querySelector('#linnaValik').value = andmed.linn;
+                näitaIlm();
+            });
+            kontainer.appendChild(nupp);
+        });
+    }
+
+    function näitaIlm() {
+        const valitudLinn = document.querySelector('#linnaValik').value;
+        const kaart = document.querySelector('#ilmaKaart');
+
+        if (!valitudLinn) {
+            kaart.style.display = 'none';
+            return;
+        }
+
+        // Otsime andmed massiivi filtreerimisel (find tagastab ühe objekti)
+        const andmed = ilmaAndmed.find(a => a.linn === valitudLinn);
+        if (!andmed) return;
+
+        // Täidame kaardi andmetega
+        document.querySelector('#ilmLinn').textContent    = andmed.linn;
+        document.querySelector('#ilmMaakond').textContent = andmed.maakond;
+        document.querySelector('#ilmIkoon').textContent   = ilmaIkoon(andmed.seisund);
+        document.querySelector('#ilmTemp').textContent    = andmed.temperatuur + '°C';
+        document.querySelector('#ilmSeisund').textContent = andmed.seisund;
+        document.querySelector('#ilmNiiskus').textContent = andmed.niiskus + '%';
+        document.querySelector('#ilmTuul').textContent    = andmed.tuul;
+        document.querySelector('#ilmTunne').textContent   = andmed.tuntavTemp + '°C';
+
+        // Muudame tausta temperatuuri järgi
+        kaart.className = 'ilm-kaart ' + temperatuuriKlass(andmed.temperatuur);
+        kaart.style.display = 'block';
+
+        // Märgime aktiivse linna nupud
+        document.querySelectorAll('.linn-nupp').forEach(function (nupp) {
+            nupp.classList.toggle('aktiivne', nupp.dataset.linn === valitudLinn);
+        });
+    }
+
+    täidaRippmenüü();
+    ehitaLinnadNimekiri();
+</script>
+</body>
+</html>

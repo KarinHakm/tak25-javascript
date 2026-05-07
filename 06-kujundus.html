@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ülesanne 6 – Kujunduse muutja</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Tume režiim */
+        body.tume {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        body.tume .card {
+            background: #1e293b;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        }
+
+        body.tume label,
+        body.tume h2,
+        body.tume h3 {
+            color: #cbd5e1;
+        }
+
+        body.tume input[type="text"],
+        body.tume select {
+            background: #334155;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        body.tume .subtitle { color: #94a3b8; }
+
+        /* Režiimi lüliti */
+        .toggle-wrap {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .toggle {
+            position: relative;
+            width: 54px;
+            height: 28px;
+        }
+
+        .toggle input { display: none; }
+
+        .toggle .slider {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #e2e8f0;
+            border-radius: 28px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle .slider::before {
+            content: '';
+            position: absolute;
+            width: 22px; height: 22px;
+            left: 3px; top: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle input:checked + .slider {
+            background: #2563eb;
+        }
+
+        .toggle input:checked + .slider::before {
+            transform: translateX(26px);
+        }
+
+        /* Eelvaate kaart */
+        .eelvaade {
+            border: 2px dashed #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 16px;
+            transition: all 0.3s;
+        }
+
+        .eelvaade h3 { margin-bottom: 8px; }
+
+        /* Salvestuse teade */
+        .saved-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #16a34a;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9em;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .saved-toast.nähtav {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <nav class="nav">
+        <a href="index.html">← Tagasi</a>
+        <span>Ülesanne 6 / 13</span>
+        <a href="07-todo.html">Järgmine →</a>
+    </nav>
+
+    <span class="badge">Ülesanne 6</span>
+    <h1>Kujunduse muutja</h1>
+    <p class="subtitle">
+        Vali teema, taustavärv ja fondi suurus. Kõik sätted salvestatakse
+        <code>localStorage</code>-isse, seega püsivad ka pärast lehe sulgemist.
+    </p>
+
+    <div class="card">
+        <h2>Kujunduse sätted</h2>
+
+        <!-- Hele/tume lüliti -->
+        <div class="form-group">
+            <label>Teema</label>
+            <div class="toggle-wrap">
+                <span>☀ Hele</span>
+                <label class="toggle">
+                    <input type="checkbox" id="tumeRežiim" onchange="muudaTeema()">
+                    <span class="slider"></span>
+                </label>
+                <span>🌙 Tume</span>
+            </div>
+        </div>
+
+        <!-- Taustavärv -->
+        <div class="form-group">
+            <label for="taustavärv">Taustavärv</label>
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
+                <input type="color" id="taustavärv" value="#f0f4f8" oninput="muudaTaustavärv()">
+                <div style="display:flex; gap:8px; flex-wrap:wrap">
+                    <button class="btn btn-sm btn-outline" onclick="seadaTaustavärv('#f0f4f8')">Vaikimisi</button>
+                    <button class="btn btn-sm" style="background:#e0f2fe;color:#0369a1" onclick="seadaTaustavärv('#e0f2fe')">Sinine</button>
+                    <button class="btn btn-sm" style="background:#dcfce7;color:#15803d" onclick="seadaTaustavärv('#dcfce7')">Roheline</button>
+                    <button class="btn btn-sm" style="background:#fef3c7;color:#92400e" onclick="seadaTaustavärv('#fef3c7')">Kollane</button>
+                    <button class="btn btn-sm" style="background:#fce7f3;color:#9d174d" onclick="seadaTaustavärv('#fce7f3')">Roosa</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fondi suurus -->
+        <div class="form-group">
+            <label for="fondiSuurus">
+                Fondi suurus: <strong id="fondiVäärtus">16px</strong>
+            </label>
+            <input type="range" id="fondiSuurus" min="12" max="24" value="16" step="1"
+                   oninput="muudaFont()">
+            <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#94a3b8">
+                <span>12px (väike)</span>
+                <span>24px (suur)</span>
+            </div>
+        </div>
+
+        <div style="margin-top:8px">
+            <button class="btn btn-primary" onclick="salvesta()">💾 Salvesta sätted</button>
+            <button class="btn btn-secondary" onclick="lähtesta()">Lähtesta</button>
+        </div>
+    </div>
+
+    <!-- Eelvaate kaart -->
+    <div class="card">
+        <h2>Eelvaade</h2>
+        <div class="eelvaade" id="eelvaade">
+            <h3>Näidistekst</h3>
+            <p>See tekst muutub vastavalt valitud fondi suurusele.
+            <strong>Paksus tekst</strong> ja <em>kaldkiri</em> on samuti nähtavad.</p>
+            <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap">
+                <button class="btn btn-primary btn-sm">Näidisnupp</button>
+                <button class="btn btn-secondary btn-sm">Teine nupp</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Salvestatud sätted (localStorage)</h2>
+        <pre id="localStorage­Näide" style="background:#f8fafc; padding:14px; border-radius:8px; font-size:0.85em; overflow:auto; color:#374151;"></pre>
+    </div>
+
+</div>
+
+<div class="saved-toast" id="toast">✓ Sätted salvestatud!</div>
+
+<script>
+    // ── Ülesanne 6: classList, style, localStorage ──
+
+    function muudaTeema() {
+        const tume = document.querySelector('#tumeRežiim').checked;
+        // classList.toggle lisab/eemaldab klassi
+        document.body.classList.toggle('tume', tume);
+        uuendanäide();
+    }
+
+    function muudaTaustavärv() {
+        const värv = document.querySelector('#taustavärv').value;
+        document.body.style.background = värv;
+        uuendanäide();
+    }
+
+    function seadaTaustavärv(värv) {
+        document.querySelector('#taustavärv').value = värv;
+        muudaTaustavärv();
+    }
+
+    function muudaFont() {
+        const suurus = document.querySelector('#fondiSuurus').value;
+        document.body.style.fontSize = suurus + 'px';
+        document.querySelector('#fondiVäärtus').textContent = suurus + 'px';
+        uuendanäide();
+    }
+
+    function salvesta() {
+        const sätted = {
+            tumeRežiim: document.querySelector('#tumeRežiim').checked,
+            taustavärv: document.querySelector('#taustavärv').value,
+            fondiSuurus: document.querySelector('#fondiSuurus').value
+        };
+
+        // localStorage salvestab andmeid brauserisse (tekstina, seega JSON.stringify)
+        localStorage.setItem('kujundusSätted', JSON.stringify(sätted));
+
+        kuvaLocalStorage();
+        näitaToast();
+    }
+
+    function lähtesta() {
+        localStorage.removeItem('kujundusSätted');
+        document.querySelector('#tumeRežiim').checked = false;
+        document.querySelector('#taustavärv').value = '#f0f4f8';
+        document.querySelector('#fondiSuurus').value = '16';
+
+        document.body.classList.remove('tume');
+        document.body.style.background = '#f0f4f8';
+        document.body.style.fontSize = '16px';
+        document.querySelector('#fondiVäärtus').textContent = '16px';
+
+        kuvaLocalStorage();
+    }
+
+    function näitaToast() {
+        const toast = document.querySelector('#toast');
+        toast.classList.add('nähtav');
+        setTimeout(function () {
+            toast.classList.remove('nähtav');
+        }, 2000);
+    }
+
+    function kuvaLocalStorage() {
+        const salvestatud = localStorage.getItem('kujundusSätted');
+        const el = document.querySelector('#localStorage­Näide');
+        if (salvestatud) {
+            // JSON.stringify kolmas argument lisab taande (loetav formaat)
+            el.textContent = JSON.stringify(JSON.parse(salvestatud), null, 2);
+        } else {
+            el.textContent = '(localStorage on tühi – sätted pole salvestatud)';
+        }
+    }
+
+    function uuendanäide() {
+        // Eelvaatekasti uuendamine (kujundus rakendub automaatselt body kaudu)
+    }
+
+    // Laeme salvestatud sätted lehe avamisel
+    function laeSätted() {
+        const salvestatud = localStorage.getItem('kujundusSätted');
+        if (!salvestatud) {
+            kuvaLocalStorage();
+            return;
+        }
+
+        const sätted = JSON.parse(salvestatud); // JSON.parse teisendab teksti objektiks
+
+        document.querySelector('#tumeRežiim').checked = sätted.tumeRežiim;
+        document.querySelector('#taustavärv').value = sätted.taustavärv;
+        document.querySelector('#fondiSuurus').value = sätted.fondiSuurus;
+
+        document.body.classList.toggle('tume', sätted.tumeRežiim);
+        document.body.style.background = sätted.taustavärv;
+        document.body.style.fontSize = sätted.fondiSuurus + 'px';
+        document.querySelector('#fondiVäärtus').textContent = sätted.fondiSuurus + 'px';
+
+        kuvaLocalStorage();
+    }
+
+    laeSätted();
+</script>
+</body>
+</html>

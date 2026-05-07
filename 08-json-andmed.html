@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ülesanne 8 – JSON-andmete kuvamine</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .statistika-kaardid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 560px) {
+            .statistika-kaardid { grid-template-columns: 1fr; }
+        }
+
+        .stat-kaart {
+            background: white;
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-top: 3px solid #2563eb;
+        }
+
+        .stat-kaart.roheline { border-top-color: #16a34a; }
+        .stat-kaart.kollane  { border-top-color: #d97706; }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .stat-label {
+            font-size: 0.82em;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .hinne-ribad {
+            margin-top: 8px;
+        }
+
+        .hinne-rida {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 7px;
+            font-size: 0.9em;
+        }
+
+        .hinne-riba {
+            flex: 1;
+            height: 14px;
+            background: #e2e8f0;
+            border-radius: 7px;
+            overflow: hidden;
+        }
+
+        .hinne-täidis {
+            height: 100%;
+            border-radius: 7px;
+            background: #2563eb;
+            transition: width 0.6s ease;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <nav class="nav">
+        <a href="index.html">← Tagasi</a>
+        <span>Ülesanne 8 / 13</span>
+        <a href="09-ilm.html">Järgmine →</a>
+    </nav>
+
+    <span class="badge">Ülesanne 8</span>
+    <h1>JSON-andmete kuvamine</h1>
+    <p class="subtitle">
+        Andmed on kirjutatud otse JavaScripti (JSON-sarnane struktuur).
+        Kuvatakse tabelis, arvutatakse statistika, filtreeritakse hinde järgi.
+    </p>
+
+    <!-- Statistika -->
+    <div class="statistika-kaardid">
+        <div class="stat-kaart">
+            <div class="stat-number" id="statKokku">–</div>
+            <div class="stat-label">Õpilasi kokku</div>
+        </div>
+        <div class="stat-kaart roheline">
+            <div class="stat-number" id="statKeskmine">–</div>
+            <div class="stat-label">Keskmine hinne</div>
+        </div>
+        <div class="stat-kaart kollane">
+            <div class="stat-number" id="statEdu">–</div>
+            <div class="stat-label">Hinne ≥ 4 (edukad)</div>
+        </div>
+    </div>
+
+    <!-- Filtreerimine ja sortimine -->
+    <div class="card">
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:16px">
+            <label style="margin:0; font-size:0.9em">Näita:</label>
+            <div style="display:flex; gap:8px; flex-wrap:wrap">
+                <button class="btn btn-sm btn-primary" onclick="kuvaFilter('kõik', this)">Kõik õpilased</button>
+                <button class="btn btn-sm btn-outline" onclick="kuvaFilter('edu', this)">Hinne ≥ 4</button>
+                <button class="btn btn-sm btn-outline" onclick="kuvaFilter('mitte', this)">Hinne &lt; 4</button>
+            </div>
+            <label style="margin:0; font-size:0.9em; margin-left:auto">Sordi:</label>
+            <select id="sortValik" onchange="uuenda()" style="width:auto; padding:7px 12px; font-size:0.9em">
+                <option value="nimi">Nime järgi</option>
+                <option value="hinne-kasvav">Hinde järgi (väiksem ees)</option>
+                <option value="hinne-kahanev">Hinde järgi (suurem ees)</option>
+            </select>
+        </div>
+
+        <table id="tabel">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nimi</th>
+                    <th>Hinne</th>
+                    <th>Tulemus</th>
+                </tr>
+            </thead>
+            <tbody id="tabelKeha"></tbody>
+        </table>
+    </div>
+
+    <!-- Hinnejaotus -->
+    <div class="card">
+        <h2>Hinnejaotus</h2>
+        <div class="hinne-ribad" id="hinneRibad"></div>
+    </div>
+
+</div>
+
+<script>
+    // ── Ülesanne 8: JSON-andmed, massiivid, objektid, tabeli genereerimine ──
+    // Sama andmestruktuur, mida kasutatakse ülesannetes 9–13.
+
+    const õpilased = [
+        { nimi: "Mari",    hinne: 5 },
+        { nimi: "Jüri",    hinne: 3 },
+        { nimi: "Kati",    hinne: 4 },
+        { nimi: "Peeter",  hinne: 2 },
+        { nimi: "Liisa",   hinne: 5 },
+        { nimi: "Toomas",  hinne: 4 },
+        { nimi: "Sandra",  hinne: 3 },
+        { nimi: "Rauno",   hinne: 5 },
+        { nimi: "Annika",  hinne: 4 },
+        { nimi: "Mihkel",  hinne: 1 }
+    ];
+
+    let aktiivneFilter = 'kõik';
+
+    function uuenda() {
+        // 1. Filtreerime
+        let andmed = [...õpilased]; // Levitame massiivi, et mitte originaali muuta
+
+        if (aktiivneFilter === 'edu') {
+            andmed = andmed.filter(o => o.hinne >= 4);
+        } else if (aktiivneFilter === 'mitte') {
+            andmed = andmed.filter(o => o.hinne < 4);
+        }
+
+        // 2. Sordime
+        const sortValik = document.querySelector('#sortValik').value;
+        if (sortValik === 'nimi') {
+            andmed.sort((a, b) => a.nimi.localeCompare(b.nimi, 'et'));
+        } else if (sortValik === 'hinne-kasvav') {
+            andmed.sort((a, b) => a.hinne - b.hinne);
+        } else if (sortValik === 'hinne-kahanev') {
+            andmed.sort((a, b) => b.hinne - a.hinne);
+        }
+
+        // 3. Kuvame tabeli
+        kuvaTabeli(andmed);
+        kuvaStatistika();
+        kuvaHinneRibad();
+    }
+
+    function kuvaTabeli(andmed) {
+        const keha = document.querySelector('#tabelKeha');
+        keha.innerHTML = '';
+
+        if (andmed.length === 0) {
+            keha.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8">Kriteeriume vastavaid õpilasi pole</td></tr>';
+            return;
+        }
+
+        andmed.forEach(function (õpilane, indeks) {
+            const tr = document.createElement('tr');
+
+            const edukas = õpilane.hinne >= 4;
+            const tulemus = edukas ? '✓ Arvestatud' : '✗ Mittearvestatud';
+            const tulemustag = edukas
+                ? '<span class="tag tag-green">' + tulemus + '</span>'
+                : '<span class="tag tag-red">' + tulemus + '</span>';
+
+            // Hindele lisame visuaalse värvi
+            const hinneVärv = õpilane.hinne >= 4 ? '#15803d' : (õpilane.hinne === 3 ? '#d97706' : '#dc2626');
+
+            tr.innerHTML =
+                '<td style="color:#94a3b8">' + (indeks + 1) + '</td>' +
+                '<td><strong>' + õpilane.nimi + '</strong></td>' +
+                '<td><span style="font-weight:700; color:' + hinneVärv + '">' + õpilane.hinne + '</span></td>' +
+                '<td>' + tulemustag + '</td>';
+
+            keha.appendChild(tr);
+        });
+    }
+
+    function kuvaStatistika() {
+        const kokku = õpilased.length;
+
+        // reduce() summeerib kõik hinded kokku
+        const hinneteSum = õpilased.reduce((summa, o) => summa + o.hinne, 0);
+        const keskmine = (hinneteSum / kokku).toFixed(1); // toFixed(1) – 1 kümnendkoht
+
+        const edukad = õpilased.filter(o => o.hinne >= 4).length;
+
+        document.querySelector('#statKokku').textContent = kokku;
+        document.querySelector('#statKeskmine').textContent = keskmine;
+        document.querySelector('#statEdu').textContent = edukad + '/' + kokku;
+    }
+
+    function kuvaHinneRibad() {
+        const kontainer = document.querySelector('#hinneRibad');
+        kontainer.innerHTML = '';
+
+        // Loendame iga hinde esinemiste arvu
+        for (let h = 5; h >= 1; h--) {
+            const arv = õpilased.filter(o => o.hinne === h).length;
+            const protsent = (arv / õpilased.length) * 100;
+            const värvid = { 5: '#16a34a', 4: '#2563eb', 3: '#d97706', 2: '#f97316', 1: '#dc2626' };
+
+            const rida = document.createElement('div');
+            rida.className = 'hinne-rida';
+            rida.innerHTML =
+                '<span style="width:30px; font-weight:700; color:' + värvid[h] + '">' + h + '</span>' +
+                '<div class="hinne-riba"><div class="hinne-täidis" style="width:' + protsent + '%; background:' + värvid[h] + '"></div></div>' +
+                '<span style="width:40px; font-size:0.85em; color:#64748b">' + arv + ' õp.</span>';
+
+            kontainer.appendChild(rida);
+        }
+    }
+
+    function kuvaFilter(filter, nupp) {
+        aktiivneFilter = filter;
+        document.querySelectorAll('[onclick^="kuvaFilter"]').forEach(b => {
+            b.className = 'btn btn-sm btn-outline';
+        });
+        nupp.className = 'btn btn-sm btn-primary';
+        uuenda();
+    }
+
+    uuenda();
+</script>
+</body>
+</html>

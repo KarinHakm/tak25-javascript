@@ -1,0 +1,32 @@
+{
+  "kasutajad": [
+    { "id": 1, "nimi": "Mari Mägi",    "vanus": 22, "linn": "Tallinn", "amet": "Arendaja"  },
+    { "id": 2, "nimi": "Jüri Järv",    "vanus": 35, "linn": "Tartu",   "amet": "Disainer"  },
+    { "id": 3, "nimi": "Kati Kask",    "vanus": 28, "linn": "Pärnu",   "amet": "Testija"   },
+    { "id": 4, "nimi": "Peeter Pärn",  "vanus": 19, "linn": "Viljandi","amet": "Tudeng"    },
+    { "id": 5, "nimi": "Liisa Lepp",   "vanus": 41, "linn": "Rakvere", "amet": "Projektijuht" },
+    { "id": 6, "nimi": "Toomas Tamm",  "vanus": 30, "linn": "Tartu",   "amet": "Analüütik" }
+  ],
+  "tooted": [
+    { "id": 1, "nimi": "Sülearvuti",              "hind": 899,  "kategooria": "Elektroonika", "laos": true  },
+    { "id": 2, "nimi": "JavaScript algajatele",   "hind": 24,   "kategooria": "Haridus",      "laos": true  },
+    { "id": 3, "nimi": "Juhtmevabad kõrvaklapid", "hind": 149,  "kategooria": "Elektroonika", "laos": false },
+    { "id": 4, "nimi": "Kohvikruus",              "hind": 12,   "kategooria": "Köök",         "laos": true  },
+    { "id": 5, "nimi": "Programmeerija märkmik",  "hind": 8,    "kategooria": "Haridus",      "laos": true  },
+    { "id": 6, "nimi": "Nutitelefon",             "hind": 649,  "kategooria": "Elektroonika", "laos": true  },
+    { "id": 7, "nimi": "Lauaarvuti hiir",         "hind": 35,   "kategooria": "Elektroonika", "laos": false }
+  ],
+  "uudised": [
+    { "id": 1, "pealkiri": "JavaScript tähistab 30. aastapäeva",           "kuupäev": "2025-12-01", "kategooria": "Tehnoloogia" },
+    { "id": 2, "pealkiri": "Eesti koolid lähevad üle digiõppele",          "kuupäev": "2025-11-15", "kategooria": "Haridus"    },
+    { "id": 3, "pealkiri": "Uus platvorm aitab õppida programmeerimist",   "kuupäev": "2025-10-22", "kategooria": "Tehnoloogia"},
+    { "id": 4, "pealkiri": "Eesti start-up sai rahvusvahelist tunnustust", "kuupäev": "2025-10-05", "kategooria": "Äri"        }
+  ],
+  "raamatud": [
+    { "id": 1, "pealkiri": "Clean Code",          "autor": "Robert C. Martin", "aasta": 2008 },
+    { "id": 2, "pealkiri": "You Don't Know JS",   "autor": "Kyle Simpson",     "aasta": 2015 },
+    { "id": 3, "pealkiri": "Eloquent JavaScript", "autor": "Marijn Haverbeke", "aasta": 2018 },
+    { "id": 4, "pealkiri": "CSS Secrets",         "autor": "Lea Verou",        "aasta": 2015 },
+    { "id": 5, "pealkiri": "Learning React",      "autor": "Alex Banks",       "aasta": 2020 }
+  ]
+}

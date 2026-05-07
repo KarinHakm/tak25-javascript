@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ülesanne 10 – AJAX-andmete laadimine</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .andme-nupud {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .andme-nupp {
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .andme-nupp:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .andme-nupp.aktiivne {
+            border-color: #2563eb;
+            background: #dbeafe;
+        }
+
+        .andme-nupp .nupp-ikoon { font-size: 1.8em; display: block; margin-bottom: 6px; }
+        .andme-nupp .nupp-tekst { font-weight: 600; font-size: 0.9em; color: #374151; }
+        .andme-nupp .nupp-kirje { font-size: 0.78em; color: #64748b; margin-top: 3px; }
+
+        .laadimine {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px;
+            color: #64748b;
+            font-size: 0.95em;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .info-päis {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .server-märkus {
+            background: #fef3c7;
+            border: 2px solid #fde68a;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            font-size: 0.88em;
+            color: #92400e;
+        }
+
+        .server-märkus code {
+            background: rgba(0,0,0,0.08);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <nav class="nav">
+        <a href="index.html">← Tagasi</a>
+        <span>Ülesanne 10 / 13</span>
+        <a href="11-otsing.html">Järgmine →</a>
+    </nav>
+
+    <span class="badge">Ülesanne 10</span>
+    <h1>AJAX-andmete laadimine</h1>
+    <p class="subtitle">
+        Nupule vajutades laetakse andmed <code>data.json</code> failist kasutades
+        <code>fetch()</code> API-t ja <code>async/await</code> süntaksit.
+    </p>
+
+    <div class="server-märkus">
+        <strong>⚠ Serveri nõue:</strong> <code>fetch()</code> ei tööta otse <code>file://</code> protokolliga.
+        Ava see fail kohaliku veebiserveri kaudu:<br>
+        VS Code: <strong>Live Server</strong> laiendus → Ava index.html → Start Live Server<br>
+        Terminal: <code>python3 -m http.server 8000</code> → ava <code>http://localhost:8000/10-ajax.html</code>
+    </div>
+
+    <!-- Andmete tüübi valik -->
+    <div class="andme-nupud">
+        <button class="andme-nupp" onclick="laadAndmed('kasutajad', this)">
+            <span class="nupp-ikoon">👥</span>
+            <span class="nupp-tekst">Kasutajad</span>
+            <span class="nupp-kirje">Nimi, vanus, linn</span>
+        </button>
+        <button class="andme-nupp" onclick="laadAndmed('tooted', this)">
+            <span class="nupp-ikoon">🛍</span>
+            <span class="nupp-tekst">Tooted</span>
+            <span class="nupp-kirje">Nimi, hind, kategooria</span>
+        </button>
+        <button class="andme-nupp" onclick="laadAndmed('uudised', this)">
+            <span class="nupp-ikoon">📰</span>
+            <span class="nupp-tekst">Uudised</span>
+            <span class="nupp-kirje">Pealkiri, kuupäev</span>
+        </button>
+        <button class="andme-nupp" onclick="laadAndmed('raamatud', this)">
+            <span class="nupp-ikoon">📚</span>
+            <span class="nupp-tekst">Raamatud</span>
+            <span class="nupp-kirje">Pealkiri, autor</span>
+        </button>
+    </div>
+
+    <!-- Tulemuste kaart -->
+    <div class="card" id="tulemused" style="display:none">
+        <div class="info-päis">
+            <h2 id="tulemustePealkiri"></h2>
+            <span class="tag tag-blue" id="kirjeteArv"></span>
+        </div>
+        <div id="tulemusteSisu"></div>
+    </div>
+
+    <!-- JSON kood -->
+    <div class="card">
+        <h2>Vastuse JSON <span style="font-weight:400; font-size:0.85em; color:#64748b">(data.json)</span></h2>
+        <pre id="jsonNäide" style="background:#0f172a; color:#e2e8f0; padding:18px; border-radius:10px; font-size:0.82em; overflow:auto; max-height:280px; line-height:1.5">(Tee päring, et näha vastust)</pre>
+    </div>
+
+</div>
+
+<script>
+    // ── Ülesanne 10: fetch(), async/await, asünkroonne andmete laadimine ──
+
+    // async funktsioon võimaldab kasutada await
+    async function laadAndmed(liik, nupp) {
+        // Uuendame aktiivset nuppu
+        document.querySelectorAll('.andme-nupp').forEach(b => b.classList.remove('aktiivne'));
+        nupp.classList.add('aktiivne');
+
+        const kaart   = document.querySelector('#tulemused');
+        const sisu    = document.querySelector('#tulemusteSisu');
+
+        // Näitame laadimisanimatsiooni
+        kaart.style.display = 'block';
+        sisu.innerHTML = '<div class="laadimine"><div class="spinner"></div><span>Laen andmeid…</span></div>';
+        document.querySelector('#tulemustePealkiri').textContent = 'Laen…';
+        document.querySelector('#kirjeteArv').textContent = '';
+
+        try {
+            // fetch() tagastab Promise – await ootab, kuni vastus saabub
+            const vastus = await fetch('data.json');
+
+            // Kontrollime, kas päring õnnestus (HTTP 200)
+            if (!vastus.ok) {
+                throw new Error('HTTP viga: ' + vastus.status);
+            }
+
+            // .json() loeb vastuse sisu ja teisendab JSON-iks
+            const andmed = await vastus.json();
+
+            // Kuvame JSON-i koodi kujul (JSON.stringify kujundab loetavaks)
+            document.querySelector('#jsonNäide').textContent =
+                JSON.stringify(andmed[liik], null, 2);
+
+            // Kuvame andmed liigi järgi
+            kuvaAndmed(liik, andmed[liik]);
+
+        } catch (viga) {
+            sisu.innerHTML =
+                '<div class="result-box result-error">' +
+                '⛔ Viga: ' + viga.message + '<br><br>' +
+                'Kontrolli, kas kasutad kohalikku serverit (vt hoiatusteade ülevalpool).' +
+                '</div>';
+            document.querySelector('#tulemustePealkiri').textContent = 'Viga!';
+            document.querySelector('#jsonNäide').textContent = '// Päring ebaõnnestus: ' + viga.message;
+        }
+    }
+
+    function kuvaAndmed(liik, andmed) {
+        const pealkirjad = {
+            kasutajad: 'Kasutajad',
+            tooted:    'Tooted',
+            uudised:   'Uudised',
+            raamatud:  'Raamatud'
+        };
+
+        document.querySelector('#tulemustePealkiri').textContent = pealkirjad[liik];
+        document.querySelector('#kirjeteArv').textContent = andmed.length + ' kirjet';
+
+        const tabel = document.createElement('table');
+        let päisHtml = '';
+        let kehaHtml = '';
+
+        if (liik === 'kasutajad') {
+            päisHtml = '<tr><th>#</th><th>Nimi</th><th>Vanus</th><th>Linn</th><th>Amet</th></tr>';
+            andmed.forEach(k => {
+                kehaHtml += '<tr><td>' + k.id + '</td><td><strong>' + k.nimi + '</strong></td>' +
+                            '<td>' + k.vanus + '</td><td>' + k.linn + '</td><td>' + k.amet + '</td></tr>';
+            });
+        } else if (liik === 'tooted') {
+            päisHtml = '<tr><th>#</th><th>Toode</th><th>Hind</th><th>Kategooria</th><th>Saadavus</th></tr>';
+            andmed.forEach(t => {
+                const saadavus = t.laos
+                    ? '<span class="tag tag-green">Laos</span>'
+                    : '<span class="tag tag-red">Otsas</span>';
+                kehaHtml += '<tr><td>' + t.id + '</td><td><strong>' + t.nimi + '</strong></td>' +
+                            '<td>' + t.hind + ' €</td><td>' + t.kategooria + '</td><td>' + saadavus + '</td></tr>';
+            });
+        } else if (liik === 'uudised') {
+            päisHtml = '<tr><th>#</th><th>Pealkiri</th><th>Kuupäev</th><th>Kategooria</th></tr>';
+            andmed.forEach(u => {
+                kehaHtml += '<tr><td>' + u.id + '</td><td><strong>' + u.pealkiri + '</strong></td>' +
+                            '<td>' + u['kuupäev'] + '</td><td><span class="tag tag-blue">' + u.kategooria + '</span></td></tr>';
+            });
+        } else if (liik === 'raamatud') {
+            päisHtml = '<tr><th>#</th><th>Pealkiri</th><th>Autor</th><th>Aasta</th></tr>';
+            andmed.forEach(r => {
+                kehaHtml += '<tr><td>' + r.id + '</td><td><strong>' + r.pealkiri + '</strong></td>' +
+                            '<td>' + r.autor + '</td><td>' + r.aasta + '</td></tr>';
+            });
+        }
+
+        tabel.innerHTML = '<thead>' + päisHtml + '</thead><tbody>' + kehaHtml + '</tbody>';
+        const sisu = document.querySelector('#tulemusteSisu');
+        sisu.innerHTML = '';
+        sisu.appendChild(tabel);
+    }
+</script>
+</body>
+</html>

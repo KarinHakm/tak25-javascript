@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAK25 – JavaScript Ülesanded</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .exercises-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 18px;
+            margin-top: 8px;
+        }
+
+        .exercise-card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .exercise-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.15);
+        }
+
+        .ex-number {
+            font-size: 0.8em;
+            font-weight: 700;
+            color: #2563eb;
+            background: #dbeafe;
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+
+        .ex-title {
+            font-weight: 700;
+            font-size: 1.05em;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .ex-desc {
+            font-size: 0.875em;
+            color: #64748b;
+            flex: 1;
+        }
+
+        .ex-topics {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #1e40af, #2563eb, #3b82f6);
+            border-radius: 16px;
+            padding: 36px;
+            color: white;
+            margin-bottom: 32px;
+        }
+
+        .hero h1 {
+            color: white;
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+
+        .hero p {
+            opacity: 0.9;
+            font-size: 1.05em;
+            max-width: 500px;
+        }
+
+        .section-title {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .info-box {
+            background: #fffbeb;
+            border: 2px solid #fde68a;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 28px;
+            font-size: 0.92em;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="hero">
+        <h1>JavaScript Ülesanded</h1>
+        <p>Grupp TAK25 &mdash; 13 samm-sammult ülesannet, mis õpetavad JavaScripti alustest kuni AJAX-ini.</p>
+    </div>
+
+    <div class="info-box">
+        <strong>Kuidas alustada?</strong> Ava igaüks HTML-fail brauseris. Ülesanne 10 (AJAX) vajab kohalikku serverit
+        &mdash; kasuta VS Code <em>Live Server</em> laiendust või käivita terminalis: <code>python3 -m http.server</code>
+    </div>
+
+    <p class="section-title">Kõik ülesanded</p>
+
+    <div class="exercises-grid">
+
+        <a href="01-tervitaja.html" class="exercise-card">
+            <span class="ex-number">Ülesanne 1</span>
+            <div class="ex-title">„Tere, JavaScript!"</div>
+            <div class="ex-desc">Nupud ja sündmused. Tekstiväli nimega, nupp ja tervituse kuvamine lehel.</div>
+            <div class="ex-topics">
+                <span class="tag tag-blue">muutujad</span>
+                <span class="tag tag-blue">onclick</span>
+                <span class="tag tag-blue">querySelector</span>
+            </div>
+        </a>
+
+        <a href="02-kalkulaator.html" class="exercise-card">
+            <span class="ex-number">Ülesanne 2</span>
+            <div class="ex-title">Lihtne kalkulaator</div>
+            <div class="ex-desc">Kaks arvu, neli tehet. Jagamine nulliga kuvatakse veateatena.</div>
+            <div class="ex-topics">
+                <span class="tag tag-blue">Number()</span>
+                <span class="tag tag-blue">operaatorid</span>
+                <span class="tag tag-blue">tingimuslaused</span>
+            </div>
+        </a>
+
+        <a href="03-parool.html" class="exercise-card">
+            <span class="ex-number">Ülesanne 3</span>
+            <div class="ex-title">Parooli tugevuse kontrollija</div>
+            <div class="ex-desc">Reaalajas kontroll: pikkus, numbrid, suurtähed, erimärgid → nõrk/keskmine/tugev.</div>
+            <div class="ex-topics">
+                <span class="tag tag-blue">stringid</span>
+                <span class="tag tag-blue">RegExp</span>
+                <span class="tag tag-blue">valideerimine</span>
+            </div>
+        </a>
+
+        <a href="04-registreerimine.html" class="exercise-card">
+            <span class="ex-number">Ülesanne 4</span>
+            <div class="ex-title">Registreerimisvorm</div>
+            <div class="ex-desc">Nimi, e-post, vanus, parool, kordus &mdash; kõik väljad valideeritakse enne saatmist.</div>
+            <div class="ex-topics">
+                <span class="tag tag-blue">vormid</span>
+                <span class="tag tag-blue">veateated</span>
+                <span class="tag tag-blue">e-posti kontroll</span>
+            </div>
+        </a>
+
+        <a href="05-galerii.html" class="exercise-card">
+            <span class="ex-number">Ülesanne 5</span>
+            <div class="ex-title">Pildigalerii</div>
+            <div class="ex-desc">Suur pilt + eelvaatepildid. Klikk vahetab suurt pilti. „Järgmine pilt" nupp.</div>
+            <div class="ex-topics">
+                <span class="tag tag-blue">img src</span>
+                <span class="tag tag-blue">DOM</span>
+                <span class="tag tag-blue">sündmused</span>
+            </div>
+        </a>
+
+        <a href="06-kujundus.html" class="exercise-card">
+            <span class="ex-number">Ülesanne 6</span>
+            <div class="ex-title">Kujunduse muutja</div>
+            <div class="ex-desc">Hele/tume režiim, taustavärv ja fondi suurus. Valik salvestatakse localStorage-isse.</div>
+            <div class="ex-topics">
+                <span class="tag tag-blue">classList</span>
+                <span class="tag tag-blue">localStorage</span>
+                <span class="tag tag-blue">CSS muutujad</span>
+            </div>
+        </a>
+
+        <a href="07-todo.html" class="exercise-card">
+            <span class="ex-number">Ülesanne 7</span>
+            <div class="ex-title">To-do nimekiri</div>
+            <div class="ex-desc">Lisa, märgi tehtuks, kustuta ülesanne. Andmed püsivad localStorage-is ka pärast lehevärskendust.</div>
+            <div class="ex-topics">
+                <span class="tag tag-blue">massiivid</span>
+                <span class="tag tag-blue">DOM loomine</span>
+                <span class="tag tag-blue">localStorage</span>
+            </div>
+        </a>
+
+        <a href="08-json-andmed.html" class="exercise-card">
+            <span class="ex-number">Ülesanne 8</span>
+            <div class="ex-title">JSON-andmete kuvamine</div>
+            <div class="ex-desc">Õpilased kuvab tabelis, arvutab keskmise, filtreerib hinde ≥ 4 järgi.</div>
+            <div class="ex-topics">
+                <span class="tag tag-blue">JSON</span>
+                <span class="tag tag-blue">objektid</span>
+                <span class="tag tag-blue">tabeli genereerimine</span>
+            </div>
+        </a>
+
+        <a href="09-ilm.html" class="exercise-card">
+            <span class="ex-number">Ülesanne 9</span>
+            <div class="ex-title">Mini-ilmarakendus</div>
+            <div class="ex-desc">Ilmaandmed JSON-ist. Linna valikust näidatakse temperatuur ja ilmastik.</div>
+            <div class="ex-topics">
+                <span class="tag tag-blue">JSON</span>
+                <span class="tag tag-blue">valikukast</span>
+                <span class="tag tag-blue">filtreerimine</span>
+            </div>
+        </a>
+
+        <a href="10-ajax.html" class="exercise-card">
+            <span class="ex-number">Ülesanne 10</span>
+            <div class="ex-title">AJAX-andmete laadimine</div>
+            <div class="ex-desc">Nupule vajutades laetakse andmed data.json failist: kasutajad, tooted, uudised, raamatud.</div>
+            <div class="ex-topics">
+                <span class="tag tag-blue">fetch()</span>
+                <span class="tag tag-blue">async/await</span>
+                <span class="tag tag-blue">AJAX</span>
+            </div>
+        </a>
+
+        <a href="11-otsing.html" class="exercise-card">
+            <span class="ex-number">Ülesanne 11</span>
+            <div class="ex-title">Otsing ja filtreerimine</div>
+            <div class="ex-desc">Toodete nimekiri. Otsi nimega, filtreeri kategooriaga, sordi hinna või nime järgi.</div>
+            <div class="ex-topics">
+                <span class="tag tag-blue">filter()</span>
+                <span class="tag tag-blue">sort()</span>
+                <span class="tag tag-blue">otsing</span>
+            </div>
+        </a>
+
+        <a href="12-jquery.html" class="exercise-card">
+            <span class="ex-number">Ülesanne 12</span>
+            <div class="ex-title">jQuery võrdlusülesanne</div>
+            <div class="ex-desc">Sama funktsioon kahel viisil: tavalise JS-iga ja jQueryga kõrvuti.</div>
+            <div class="ex-topics">
+                <span class="tag tag-purple">jQuery</span>
+                <span class="tag tag-blue">võrdlus</span>
+                <span class="tag tag-blue">animatsioon</span>
+            </div>
+        </a>
+
+        <a href="13-lopuulesanne.html" class="exercise-card">
+            <span class="ex-number">Ülesanne 13</span>
+            <div class="ex-title">Lõpuülesanne: Hinnete haldur</div>
+            <div class="ex-desc">Lisa õpilane, sisesta hindeid, arvuta keskmised, salvesta localStorage-isse, laadi algandmed fetch()-iga.</div>
+            <div class="ex-topics">
+                <span class="tag tag-green">LÕPUÜLESANNE</span>
+                <span class="tag tag-blue">fetch()</span>
+                <span class="tag tag-blue">localStorage</span>
+            </div>
+        </a>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ülesanne 7 – To-do nimekiri</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background 0.15s;
+        }
+
+        .todo-item:last-child { border-bottom: none; }
+
+        .todo-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            cursor: pointer;
+            accent-color: #16a34a;
+        }
+
+        .todo-tekst {
+            flex: 1;
+            font-size: 1em;
+            transition: all 0.2s;
+        }
+
+        .todo-tekst.tehtud {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+
+        .todo-item .btn-kustuta {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.15s;
+            line-height: 1;
+        }
+
+        .todo-item .btn-kustuta:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .lisa-rida {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .lisa-rida input {
+            flex: 1;
+        }
+
+        .statistika {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            font-size: 0.9em;
+        }
+
+        .stat {
+            background: #f1f5f9;
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .stat.tehtud-stat { background: #dcfce7; color: #15803d; }
+
+        .filter-nupud {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .filter-nupud button {
+            font-size: 0.85em;
+            padding: 5px 14px;
+        }
+
+        .filter-nupud button.aktiivne {
+            background: #2563eb;
+            color: white;
+        }
+
+        #ülesandedNimekiri {
+            min-height: 60px;
+        }
+
+        .tühi-olek {
+            text-align: center;
+            color: #94a3b8;
+            padding: 24px 0;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <nav class="nav">
+        <a href="index.html">← Tagasi</a>
+        <span>Ülesanne 7 / 13</span>
+        <a href="08-json-andmed.html">Järgmine →</a>
+    </nav>
+
+    <span class="badge">Ülesanne 7</span>
+    <h1>To-do nimekiri</h1>
+    <p class="subtitle">
+        Lisa, märgi tehtuks ja kustuta ülesandeid. Kõik andmed salvestatakse
+        <code>localStorage</code>-isse (ülesandest 6 tuttav).
+    </p>
+
+    <div class="card">
+        <!-- Lisa ülesanne -->
+        <div class="lisa-rida">
+            <input type="text" id="uusÜlesanne" placeholder="Mida on vaja teha?" maxlength="200">
+            <button class="btn btn-primary" onclick="lisaÜlesanne()">+ Lisa</button>
+        </div>
+
+        <!-- Statistika -->
+        <div class="statistika">
+            <span class="stat" id="kokkuStat">Kokku: 0</span>
+            <span class="stat tehtud-stat" id="tehtuStat">Tehtud: 0</span>
+            <span class="stat" id="ootabStat">Ootab: 0</span>
+        </div>
+
+        <!-- Filter -->
+        <div class="filter-nupud">
+            <button class="btn btn-outline btn-sm aktiivne" onclick="muudaFilter('kõik', this)">Kõik</button>
+            <button class="btn btn-outline btn-sm" onclick="muudaFilter('ootab', this)">Ootab</button>
+            <button class="btn btn-outline btn-sm" onclick="muudaFilter('tehtud', this)">Tehtud</button>
+        </div>
+
+        <!-- Ülesannete nimekiri -->
+        <div id="ülesandedNimekiri"></div>
+
+        <!-- Alumised nupud -->
+        <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap">
+            <button class="btn btn-danger btn-sm" onclick="kustutaTehtud()">🗑 Kustuta tehtud</button>
+            <button class="btn btn-secondary btn-sm" onclick="kustutaKõik()">Kustuta kõik</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ── Ülesanne 7: massiivid, objektid, DOM-elementide loomine, localStorage ──
+
+    // Andmestruktuur: massiiv objektidest
+    // Iga objekt esindab üht ülesannet
+    let ülesanded = [];
+    let filter = 'kõik';
+    let järjekorraNumber = 0;
+
+    function lisaÜlesanne() {
+        const sisend = document.querySelector('#uusÜlesanne');
+        const tekst = sisend.value.trim();
+
+        if (tekst === '') {
+            sisend.focus();
+            return;
+        }
+
+        // Loome uue ülesande objekti
+        const uusÜlesanne = {
+            id: ++järjekorraNumber,
+            tekst: tekst,
+            tehtud: false,
+            lisatudAeg: new Date().toLocaleString('et-EE')
+        };
+
+        ülesanded.push(uusÜlesanne); // push lisab massiivi lõppu
+        sisend.value = '';
+        sisend.focus();
+
+        salvesta();
+        kuva();
+    }
+
+    function märgiTehtud(id) {
+        // Otsime ülesande id järgi (find tagastab esimese sobiva elemendi)
+        const ülesanne = ülesanded.find(u => u.id === id);
+        if (ülesanne) {
+            ülesanne.tehtud = !ülesanne.tehtud; // Vahetame true ↔ false
+        }
+        salvesta();
+        kuva();
+    }
+
+    function kustutaÜlesanne(id) {
+        // filter() tagastab uue massiivi, kus ei ole selle id-ga elementi
+        ülesanded = ülesanded.filter(u => u.id !== id);
+        salvesta();
+        kuva();
+    }
+
+    function kustutaTehtud() {
+        ülesanded = ülesanded.filter(u => !u.tehtud);
+        salvesta();
+        kuva();
+    }
+
+    function kustutaKõik() {
+        if (ülesanded.length === 0) return;
+        if (confirm('Kustutad kõik ülesanded?')) {
+            ülesanded = [];
+            salvesta();
+            kuva();
+        }
+    }
+
+    function muudaFilter(uusFilter, nupp) {
+        filter = uusFilter;
+        document.querySelectorAll('.filter-nupud button').forEach(b => b.classList.remove('aktiivne'));
+        nupp.classList.add('aktiivne');
+        kuva();
+    }
+
+    function kuva() {
+        const konteiner = document.querySelector('#ülesandedNimekiri');
+        konteiner.innerHTML = '';
+
+        // Filtreerime massiivi (ülesandest 11 kasutatakse seda rohkem)
+        let näidatavad = ülesanded;
+        if (filter === 'tehtud') {
+            näidatavad = ülesanded.filter(u => u.tehtud);
+        } else if (filter === 'ootab') {
+            näidatavad = ülesanded.filter(u => !u.tehtud);
+        }
+
+        if (näidatavad.length === 0) {
+            konteiner.innerHTML = '<div class="tühi-olek">Ülesandeid pole 🎉</div>';
+        } else {
+            näidatavad.forEach(function (ü) {
+                const div = document.createElement('div');
+                div.className = 'todo-item';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = ü.tehtud;
+                checkbox.addEventListener('change', () => märgiTehtud(ü.id));
+
+                const span = document.createElement('span');
+                span.className = 'todo-tekst' + (ü.tehtud ? ' tehtud' : '');
+                span.textContent = ü.tekst;
+                span.title = 'Lisatud: ' + ü.lisatudAeg;
+
+                const kustutaNupp = document.createElement('button');
+                kustutaNupp.className = 'btn-kustuta';
+                kustutaNupp.textContent = '✕';
+                kustutaNupp.title = 'Kustuta';
+                kustutaNupp.addEventListener('click', () => kustutaÜlesanne(ü.id));
+
+                div.appendChild(checkbox);
+                div.appendChild(span);
+                div.appendChild(kustutaNupp);
+                konteiner.appendChild(div);
+            });
+        }
+
+        // Uuendame statistikat
+        const kokku = ülesanded.length;
+        const tehtud = ülesanded.filter(u => u.tehtud).length;
+        document.querySelector('#kokkuStat').textContent  = 'Kokku: ' + kokku;
+        document.querySelector('#tehtuStat').textContent  = 'Tehtud: ' + tehtud;
+        document.querySelector('#ootabStat').textContent  = 'Ootab: ' + (kokku - tehtud);
+    }
+
+    function salvesta() {
+        localStorage.setItem('todoÜlesanded', JSON.stringify(ülesanded));
+        localStorage.setItem('todoJärjekorraNumber', järjekorraNumber.toString());
+    }
+
+    function laadAndmed() {
+        const salvestatud = localStorage.getItem('todoÜlesanded');
+        if (salvestatud) {
+            ülesanded = JSON.parse(salvestatud);
+        }
+        const salvestatudNumber = localStorage.getItem('todoJärjekorraNumber');
+        if (salvestatudNumber) {
+            järjekorraNumber = Number(salvestatudNumber);
+        }
+    }
+
+    // Enter-klahv lisab ülesande
+    document.querySelector('#uusÜlesanne').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') lisaÜlesanne();
+    });
+
+    // Algseadistus
+    laadAndmed();
+    kuva();
+</script>
+</body>
+</html>
