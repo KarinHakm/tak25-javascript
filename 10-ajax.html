@@ -99,11 +99,10 @@
         <code>fetch()</code> API-t ja <code>async/await</code> süntaksit.
     </p>
 
-    <div class="server-märkus">
-        <strong>⚠ Serveri nõue:</strong> <code>fetch()</code> ei tööta otse <code>file://</code> protokolliga.
-        Ava see fail kohaliku veebiserveri kaudu:<br>
-        VS Code: <strong>Live Server</strong> laiendus → Ava index.html → Start Live Server<br>
-        Terminal: <code>python3 -m http.server 8000</code> → ava <code>http://localhost:8000/10-ajax.html</code>
+    <div class="server-märkus" id="serverMärkus" style="display:none">
+        <strong>⚠ Kohalik avamine:</strong> <code>fetch()</code> ei tööta otse <code>file://</code> protokolliga.
+        Kasuta VS Code <strong>Live Server</strong> laiendust või käivita terminalis:
+        <code>python3 -m http.server 8000</code>
     </div>
 
     <!-- Andmete tüübi valik -->
@@ -149,6 +148,11 @@
 
 <script>
     // ── Ülesanne 10: fetch(), async/await, asünkroonne andmete laadimine ──
+
+    // Näita hoiatust ainult siis, kui avatakse otse failisüsteemist
+    if (location.protocol === 'file:') {
+        document.querySelector('#serverMärkus').style.display = 'block';
+    }
 
     // async funktsioon võimaldab kasutada await
     async function laadAndmed(liik, nupp) {
