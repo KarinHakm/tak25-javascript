@@ -57,19 +57,19 @@
         const nimiSisend = document.querySelector('#nimiSisend');
         const nimi = nimiSisend.value.trim(); // trim() eemaldab tühikud algusest ja lõpust
 
-        const tulemuse­kast = document.querySelector('#tulemus');
+        const tulemusekast = document.querySelector('#tulemus');
 
         if (nimi === '') {
             // Kasutaja ei sisestanud nime
-            tulemuse­kast.textContent = '⚠ Palun sisesta oma nimi!';
-            tulemuse­kast.className = 'result-box result-error';
+            tulemusekast.textContent = '⚠ Palun sisesta oma nimi!';
+            tulemusekast.className = 'result-box result-error';
         } else {
             // Kuvatakse tervitustekst
-            tulemuse­kast.textContent = 'Tere, ' + nimi + '! 👋';
-            tulemuse­kast.className = 'result-box result-success';
+            tulemusekast.textContent = 'Tere, ' + nimi + '! 👋';
+            tulemusekast.className = 'result-box result-success';
         }
 
-        tulemuse­kast.style.display = 'block';
+        tulemusekast.style.display = 'block';
     }
 
     function tühjenda() {
